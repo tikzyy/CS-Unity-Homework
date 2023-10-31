@@ -19,12 +19,9 @@ public class ListHomework : MonoBehaviour
             "Merlin the Wise",
             "Blu the Brazilian"
         };
-        int listLength = questPartyMembers.Count;
 
         questPartyMembers.Add("Margo the Sleeper");
         questPartyMembers.Insert(myNumber, myName);
-
-        int partySize = questPartyMembers.Count;
 
         foreach (string name in questPartyMembers)
         {
@@ -36,5 +33,13 @@ public class ListHomework : MonoBehaviour
         /// navigating through a larger piece of code when we barely know
         /// anything...
 
+        int partySize = questPartyMembers.Count;
+
+        for (int i = 0; i < partySize; i++)
+        {
+            Debug.LogFormat("Index: {0} - {1}", i, questPartyMembers[i]);
+        }
+
+        /// Added method in original code for study purposes.
     }
 }
