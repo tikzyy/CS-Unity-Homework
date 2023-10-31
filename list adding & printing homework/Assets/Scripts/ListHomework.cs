@@ -11,6 +11,7 @@ public class ListHomework : MonoBehaviour
         int number = 2;
         FindPartyMember(name, number-1);
     }
+
     public void FindPartyMember(string myName, int myNumber)
     {
         List<string> questPartyMembers = new List<string>()
@@ -19,13 +20,13 @@ public class ListHomework : MonoBehaviour
             "Merlin the Wise",
             "Blu the Brazilian"
         };
-
+        
         questPartyMembers.Add("Margo the Sleeper");
         questPartyMembers.Insert(myNumber, myName);
 
-        foreach (string name in questPartyMembers)
+        foreach (string listNames in questPartyMembers)
         {
-            print(name);
+            print(listNames);
         }
 
         /// I think it would have been easier to learn lists by asking us
