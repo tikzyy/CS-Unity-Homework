@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<ArrayOfGroupMember xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <GroupMember>
+    <name>memberOne</name>
+    <birthYear>2001</birthYear>
+    <favColour>Lilac</favColour>
+  </GroupMember>
+  <GroupMember>
+    <name>memberTwo</name>
+    <birthYear>1999</birthYear>
+    <favColour>blue</favColour>
+  </GroupMember>
+  <GroupMember>
+    <name>memberThree</name>
+    <birthYear>2003</birthYear>
+    <favColour>yellow</favColour>
+  </GroupMember>
+  <GroupMember>
+    <name>memberFour</name>
+    <birthYear>2004</birthYear>
+    <favColour>orange</favColour>
+  </GroupMember>
+  <GroupMember>
+    <name>memberFive</name>
+    <birthYear>2000</birthYear>
+    <favColour>gray</favColour>
+  </GroupMember>
+  <GroupMember>
+    <name>memberSix</name>
+    <birthYear>1997</birthYear>
+    <favColour>red</favColour>
+  </GroupMember>
+</ArrayOfGroupMember>
