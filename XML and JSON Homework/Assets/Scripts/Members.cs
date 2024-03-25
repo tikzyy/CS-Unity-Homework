@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 [Serializable]
 public struct GroupMember
@@ -14,10 +13,4 @@ public struct GroupMember
         this.birthYear = birthYear;
         this.favColour = favColour;
     }
-}
-
-[Serializable]
-public class People
-{
-    public List<GroupMember> members;
 }

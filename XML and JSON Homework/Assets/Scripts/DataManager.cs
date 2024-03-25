@@ -3,6 +3,8 @@ using UnityEngine;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
+
 
 public class DataManager : MonoBehaviour
 {
@@ -13,7 +15,7 @@ public class DataManager : MonoBehaviour
     private string _state;
 
     // list with names, birthdate and favourite colour
-    private readonly List<GroupMember> _GroupMember = new List<GroupMember>
+    private readonly List<GroupMember> _groupMember = new List<GroupMember>
     {
         new GroupMember("memberOne", 2001, "Lilac"),
         new GroupMember("memberTwo", 1999, "blue"),
@@ -32,16 +34,16 @@ public class DataManager : MonoBehaviour
 
         Debug.Log(_dataPath);
         
-        _xmlGroupMembers = _dataPath + "GroupMember_Data.xml";
-        _jsonMembers = _dataPath + "JSONMembers.json";
+        _xmlGroupMembers = _dataPath + "XMLMembers.xml";
+        _jsonMembers = _dataPath + "JsonMembers.json";
     }
 
-    void Start()
+    public void Start()
     {
         Initialize();
     }
 
-    public void Initialize()
+    private void Initialize()
     {
         _state = "Data Manager initialized..";
         Debug.Log(_state);
@@ -50,7 +52,7 @@ public class DataManager : MonoBehaviour
         NewDirectory();
     }
 
-    public void FileSystemInfo()
+    private void FileSystemInfo()
     {
         Debug.LogFormat("Path separator character: {0}", Path.PathSeparator);
         Debug.LogFormat("Directory separator character: {0}", Path.DirectorySeparatorChar);
@@ -59,7 +61,7 @@ public class DataManager : MonoBehaviour
         Debug.LogFormat("Temporary path: {0}", Path.GetTempPath());
     }
 
-    public void NewDirectory()
+    private void NewDirectory()
     {
         if (Directory.Exists(_dataPath))
         {
@@ -73,8 +75,7 @@ public class DataManager : MonoBehaviour
         Debug.Log(_dataPath);
     }
     
-    // not used
-    public void WriteToXML(string filename)
+    private void WriteToXML(string filename)
     {
         if (!File.Exists(filename))
         {
@@ -83,7 +84,7 @@ public class DataManager : MonoBehaviour
 
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("GroupMembers");
-            foreach (var i in _GroupMember)
+            foreach (var i in _groupMember)
             {
                 xmlWriter.WriteStartElement(i.name);
                 xmlWriter.WriteElementString("BirthYear", i.birthYear.ToString());
@@ -101,7 +102,7 @@ public class DataManager : MonoBehaviour
             Debug.Log("XML File already exists; Deserializing XML and serializing as json");
             if (!File.Exists(_jsonMembers))
             {
-                DeserializeXML();
+                XMLtoJson();
             }
         }
     }
@@ -110,34 +111,42 @@ public class DataManager : MonoBehaviour
     // I think the issue might be that some of the names in the XML file and for my variables overlap
     // but on further testing unfortunately that did not solve my issue
     // I genuinely am at loss for what have gone wrong
-    public void DeserializeXML()
-    {
-        if (File.Exists(_xmlGroupMembers))
-        {
-            var xmlSerializer = new XmlSerializer(typeof(GroupMembersWrapper)); // Wrapper class (GPT contribution)
-
-            using FileStream stream = File.OpenRead(_xmlGroupMembers);
-            var wrapper = (GroupMembersWrapper)xmlSerializer.Deserialize(stream);
-            var people = wrapper.Members;
-            SerializeJSON(wrapper);
-        }
-    }
-
-    [XmlRoot("GroupMembers")] // (GPT contribution)
-    public class GroupMembersWrapper
-    {
-        [XmlElement("member")]
-        public List<GroupMember> Members { get; set; }
-    }
-
-
-    public void SerializeJSON(GroupMembersWrapper members)
-    {
-        string jsonString = JsonUtility.ToJson(members, true);
-        using (StreamWriter stream = File.CreateText(_jsonMembers))
-        {
-            stream.WriteLine(jsonString);
-        }
-    }
+    //
+    // update: upon further research I have decided to abandon the DeserializeXML method as it seems redundant. Instead, I will utilise another method.
     
+    // private void DeserializeXML()
+    // {
+    //     if (!File.Exists(_xmlGroupMembers)) return;
+    //     var xmlSerializer = new XmlSerializer(typeof(GroupMembersWrapper)); // Wrapper class (GPT contribution)
+
+    //     using var stream = File.OpenRead(_xmlGroupMembers);
+    //    var wrapper = (GroupMembersWrapper)xmlSerializer.Deserialize(stream);
+    //    SerializeJson("placeholder");
+    // }
+
+    // [XmlRoot("GroupMembers")] // (GPT contribution)
+    // public class GroupMembersWrapper
+    // {
+    //     [XmlElement("member")]
+    //     public List<GroupMember> members { get; set; }
+    // }
+
+    // <summary>
+    // these new methods simply reads the xml file as a string, "loads" it as using LoadXml and thereafter converts it to json
+    // by initialising a string (jsonText) using JsonConvert.SerializeXmlNode from Newtonsoft.Json.
+    // Finally the SerializeJson method is called, which simply creates the Json using the aforementioned data.
+    // <summary>
+    
+    private void XMLtoJson()
+    {
+        string xml = File.ReadAllText(_xmlGroupMembers);
+        
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(xml);
+        
+        string jsonText = JsonConvert.SerializeXmlNode(xmlDoc);
+        
+        File.WriteAllText(_jsonMembers, jsonText);
+        Debug.LogFormat("json file created!");
+    }
 }
