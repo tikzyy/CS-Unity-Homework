@@ -1,48 +1,73 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 using UnityEngine;
+using System.IO;
+using System;
+using System.Xml;
 using System.Xml.Serialization;
+using System.Text;
 
 public class DataManager : MonoBehaviour
 {
     private string _dataPath;
-
-    private string _xmlMembers;
-    private string _jsonMembers;
-
-
-    //page.337
-    private List<Members> memberList = new List<Members>
+    private string _xmlGroupMembers;
+    private string _JSONMembers;
+    
+    private string _state;
+    public string State
     {
-        new Members("Clara",1998,"Black"),
-        new Members("Astrid",2003,"Orange"),
-        new Members("Benjamin",1998,"Blue"),
-        new Members("Oliver", 2001,"Purple"),
-        new Members("Christoffer",2002,"Yellow")
+        get { return _state; }
+        set { _state = value; }
+    }
+    
+    // list with names, birthdate and favourite colour
+    private List<GroupMember> _GroupMember = new List<GroupMember>
+    {
+        new GroupMember("memberOne", 2001, "Lilac"),
+        new GroupMember("memberTwo", 1999, "blue"),
+        new GroupMember("memberThree", 2003, "yellow"),
+        new GroupMember("memberFour", 2004, "orange"),
+        new GroupMember("memberFive", 2000, "gray"),
+        new GroupMember("memberSix", 1997, "red"),
     };
+    
     void Awake()
     {
-        _dataPath = Application.persistentDataPath+"/Player_Data/";
+        // _dataPath = Application.persistentDataPath + "/Player_Data/";
+        
+        // created a new directory in root folder "/Logs/" in order to easily access the XML file
+        _dataPath = Directory.GetCurrentDirectory() + "/Logs/Files/";
+
         Debug.Log(_dataPath);
-
-
-        _xmlMembers = _dataPath + "MembersData.xml";
-        _jsonMembers = _dataPath + "MembersData.json";
+        
+        _xmlGroupMembers = _dataPath + "GroupMember_Data.xml";
+        _JSONMembers = _dataPath + "JSONMembers.json";
     }
 
     void Start()
     {
-     Initialize();
+        Initialize();
     }
 
     public void Initialize()
     {
+        _state = "Data Manager initialized..";
+        Debug.Log(_state);
+
+        FileSystemInfo();
         NewDirectory();
-        SerializeXML();
         DeserializeXML();
     }
+
+    public void FileSystemInfo()
+    {
+        Debug.LogFormat("Path separator character: {0}", Path.PathSeparator);
+        Debug.LogFormat("Directory separator character: {0}", Path.DirectorySeparatorChar);
+        Debug.LogFormat("Current directory: {0}",
+            Directory.GetCurrentDirectory());
+        Debug.LogFormat("Temporary path: {0}", Path.GetTempPath());
+    }
+
     public void NewDirectory()
     {
         if (Directory.Exists(_dataPath))
@@ -53,44 +78,65 @@ public class DataManager : MonoBehaviour
 
         Directory.CreateDirectory(_dataPath);
         Debug.Log("New directory created!");
+        Debug.Log(_dataPath);
     }
-    //page.336
-    public void SerializeXML()
+    
+    // not used
+    public void WriteToXML(string filename)
     {
-        var xmlSerializer = new XmlSerializer(typeof(List<Members>));
-
-        using (FileStream stream = File.Create(_xmlMembers))
+        if (!File.Exists(filename))
         {
-            xmlSerializer.Serialize(stream, memberList);
+            FileStream xmlStream = File.Create(filename);
+            XmlWriter xmlWriter = XmlWriter.Create(xmlStream);
+
+            xmlWriter.WriteStartDocument();
+            xmlWriter.WriteStartElement("GroupMembers");
+            foreach (var i in _GroupMember)
+            {
+                xmlWriter.WriteStartElement(i.name);
+                xmlWriter.WriteElementString("BirthYear", i.birthYear.ToString());
+                xmlWriter.WriteElementString("FavouriteColour", i.favColour);
+                xmlWriter.WriteEndElement();
+            }
+
+            xmlWriter.WriteEndElement();
+            xmlWriter.Close();
+            xmlStream.Close();
+            Debug.Log("XML File created");
+        }
+        else
+        {
+            Debug.Log("XML File already exists; Deserializing XML and serializing as json");
+            if (!File.Exists(_JSONMembers))
+            {
+                DeserializeXML();
+            }
         }
     }
-    //page.336
+    
     public void DeserializeXML()
     {
-        if (File.Exists(_xmlMembers))
+        if (File.Exists(_xmlGroupMembers))
         {
-            var xmlSerializer = new XmlSerializer(typeof(List<Members>));
+            var xmlSerializer = new XmlSerializer(typeof(List<GroupMember>));
 
-            using (FileStream stream = File.OpenRead(_xmlMembers))
+            using (FileStream stream = File.OpenRead(_xmlGroupMembers))
             {
-                var members = (List<Members>)xmlSerializer.Deserialize(stream);
+                var people = (List<GroupMember>)xmlSerializer.Deserialize(stream);
 
-                Members.Member ListOfMembers = new Members.Member();
-                ListOfMembers.list = members;
-                SerializeJSON();
+                People membersToJson = new People();
+                membersToJson.members = people;
+                SerializeJSON(membersToJson);
             }
-            
         }
     }
-
-    //page.341 (This is NOT taking the data from XML and turning it into JSON, just making JSON from the origial data)
-    public void SerializeJSON(Members group)
+    public void SerializeJSON(People members)
     {
-        string jsonString = JsonUtility.ToJson(group, true);
-
-        using (StreamWriter stream = File.CreateText(_jsonMembers))
+        string jsonString = JsonUtility.ToJson(members, true);
+        using (StreamWriter stream = File.CreateText(_JSONMembers))
         {
             stream.WriteLine(jsonString);
         }
     }
+    
 }

@@ -1,25 +1,24 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Xml.Serialization;
 
 [Serializable]
-public struct Members
+public struct GroupMember
 {
-    public string name;
-    public int year;
-    public string color;
+    public string name { get; set; }
+    public int birthYear { get; set; }
+    public string favColour { get; set; }
 
-    public Members(string name, int year, string color)
+    public GroupMember(string name, int birthYear, string favColour)
     {
         this.name = name;
-        this.year = year;
-        this.color = color;
+        this.birthYear = birthYear;
+        this.favColour = favColour;
     }
+}
 
-    [Serializable]
-    public class Member
-    {
-        public List<Members> list;
-    }
+[Serializable]
+public class People
+{
+    public List<GroupMember> members;
 }
