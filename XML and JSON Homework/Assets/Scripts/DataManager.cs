@@ -1,27 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Text;
 
 public class DataManager : MonoBehaviour
 {
     private string _dataPath;
     private string _xmlGroupMembers;
-    private string _JSONMembers;
+    private string _jsonMembers;
     
     private string _state;
-    public string State
-    {
-        get { return _state; }
-        set { _state = value; }
-    }
-    
+
     // list with names, birthdate and favourite colour
-    private List<GroupMember> _GroupMember = new List<GroupMember>
+    private readonly List<GroupMember> _GroupMember = new List<GroupMember>
     {
         new GroupMember("memberOne", 2001, "Lilac"),
         new GroupMember("memberTwo", 1999, "blue"),
@@ -36,12 +28,12 @@ public class DataManager : MonoBehaviour
         // _dataPath = Application.persistentDataPath + "/Player_Data/";
         
         // created a new directory in root folder "/Logs/" in order to easily access the XML file
-        _dataPath = Directory.GetCurrentDirectory() + "/Logs/Files/";
+        _dataPath = Directory.GetCurrentDirectory() + "/Logs/Files/XLM_json_Files/";
 
         Debug.Log(_dataPath);
         
         _xmlGroupMembers = _dataPath + "GroupMember_Data.xml";
-        _JSONMembers = _dataPath + "JSONMembers.json";
+        _jsonMembers = _dataPath + "JSONMembers.json";
     }
 
     void Start()
@@ -56,7 +48,6 @@ public class DataManager : MonoBehaviour
 
         FileSystemInfo();
         NewDirectory();
-        DeserializeXML();
     }
 
     public void FileSystemInfo()
@@ -72,7 +63,8 @@ public class DataManager : MonoBehaviour
     {
         if (Directory.Exists(_dataPath))
         {
-            Debug.Log("Directory already exists...");
+            Debug.Log("Directory already exists, creating XML file");
+            WriteToXML(_xmlGroupMembers);
             return;
         }
 
@@ -107,33 +99,42 @@ public class DataManager : MonoBehaviour
         else
         {
             Debug.Log("XML File already exists; Deserializing XML and serializing as json");
-            if (!File.Exists(_JSONMembers))
+            if (!File.Exists(_jsonMembers))
             {
                 DeserializeXML();
             }
         }
     }
     
+    // I used ChatGPT for a few things in this portion as I had issues using the deserializing the XML properly -
+    // I think the issue might be that some of the names in the XML file and for my variables overlap
+    // but on further testing unfortunately that did not solve my issue
+    // I genuinely am at loss for what have gone wrong
     public void DeserializeXML()
     {
         if (File.Exists(_xmlGroupMembers))
         {
-            var xmlSerializer = new XmlSerializer(typeof(List<GroupMember>));
+            var xmlSerializer = new XmlSerializer(typeof(GroupMembersWrapper)); // Wrapper class (GPT contribution)
 
-            using (FileStream stream = File.OpenRead(_xmlGroupMembers))
-            {
-                var people = (List<GroupMember>)xmlSerializer.Deserialize(stream);
-
-                People membersToJson = new People();
-                membersToJson.members = people;
-                SerializeJSON(membersToJson);
-            }
+            using FileStream stream = File.OpenRead(_xmlGroupMembers);
+            var wrapper = (GroupMembersWrapper)xmlSerializer.Deserialize(stream);
+            var people = wrapper.Members;
+            SerializeJSON(wrapper);
         }
     }
-    public void SerializeJSON(People members)
+
+    [XmlRoot("GroupMembers")] // (GPT contribution)
+    public class GroupMembersWrapper
+    {
+        [XmlElement("member")]
+        public List<GroupMember> Members { get; set; }
+    }
+
+
+    public void SerializeJSON(GroupMembersWrapper members)
     {
         string jsonString = JsonUtility.ToJson(members, true);
-        using (StreamWriter stream = File.CreateText(_JSONMembers))
+        using (StreamWriter stream = File.CreateText(_jsonMembers))
         {
             stream.WriteLine(jsonString);
         }
